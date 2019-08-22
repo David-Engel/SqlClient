@@ -69,6 +69,22 @@
           DestinationFiles="@(SNIFiles -> '$(OutDir)%(RecursiveDir)%(Filename)%(Extension)')" />
   </Target>
 
+  <Target Name="PublishSNIFiles" AfterTargets="Publish"
+          Condition="'$(CopySNIFiles)' != 'false' And
+                     '$(PublishSNIFiles)' != 'false' And
+                     '$(PublishDir)' != '' And
+                     HasTrailingSlash('$(PublishDir)') And
+                     Exists('$(PublishDir)')"
+          Inputs="@(SNIFiles)"
+          Outputs="@(SNIFiles -> '$(PublishDir)%(RecursiveDir)%(Filename)%(Extension)')">
+    <!--
+        NOTE: Copy "SNI.dll" and all related files, for every
+              architecture that we support, to the build output directory.
+    -->
+    <Copy SourceFiles="@(SNIFiles)"
+          DestinationFiles="@(SNIFiles -> '$(PublishDir)%(RecursiveDir)%(Filename)%(Extension)')" />
+  </Target>
+
   <!--
   ******************************************************************************
   -->
@@ -109,6 +125,10 @@
       $(PostBuildEventDependsOn);
       CopySNIFiles;
     </PostBuildEventDependsOn>
+    <PublishItemsOutputGroupDependsOn>
+      $(PublishItemsOutputGroupDependsOn);
+      PublishSNIFiles;
+    </PublishItemsOutputGroupDependsOn>
     <BuildDependsOn>
       $(BuildDependsOn);
       CopySNIFiles;
