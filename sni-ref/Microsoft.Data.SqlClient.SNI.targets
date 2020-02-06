@@ -69,6 +69,22 @@
           DestinationFiles="@(SNIFiles -> '$(OutDir)%(RecursiveDir)%(Filename)%(Extension)')" />
   </Target>
 
+  <Target Name="CopySNIRoleFiles"
+          Condition="'@(WorkerRoleReferences)' != ''"
+          Inputs="@(SNIFiles)"
+          Outputs="@(SNIFiles -> '$(_IntermediateWorkerOutputPath)%(RecursiveDir)%(Filename)%(Extension)')">
+    <!--
+        NOTE: Copy "SNI.dll" and all related files, for every
+              architecture that we support, to the build output directory.
+    -->
+    <PropertyGroup>
+      <_IntermediateWorkerOutputPath>%(WorkerRoleReferences.OutputDir)</_IntermediateWorkerOutputPath>
+    </PropertyGroup>
+
+    <Copy SourceFiles="@(SNIFiles)"
+          DestinationFiles="@(SNIFiles -> '$(_IntermediateWorkerOutputPath)%(RecursiveDir)%(Filename)%(Extension)')" />
+  </Target>
+
   <Target Name="PublishSNIFiles" AfterTargets="Publish"
           Condition="'$(CopySNIFiles)' != 'false' And
                      '$(PublishSNIFiles)' != 'false' And
@@ -145,16 +161,18 @@
   ******************************************************************************
   -->
 
-  <PropertyGroup Condition="'$(VisualStudioVersion)' == '' Or
-                            '$(VisualStudioVersion)' == '10.0' Or
-                            '$(VisualStudioVersion)' == '11.0' Or
-                            '$(VisualStudioVersion)' == '12.0' Or
-                            '$(VisualStudioVersion)' == '14.0' Or
-                            '$(VisualStudioVersion)' == '15.0' Or
-                            '$(VisualStudioVersion)' == '16.0'">
+  <PropertyGroup>
     <PipelineCollectFilesPhaseDependsOn>
       CollectSNIFiles;
       $(PipelineCollectFilesPhaseDependsOn);
     </PipelineCollectFilesPhaseDependsOn>
+    <CollectRoleFilesDependsOn>
+      $(CollectRoleFilesDependsOn);
+      CollectSNIFiles;
+    </CollectRoleFilesDependsOn>
+    <CopyRoleFilesDependsOn>
+      $(CopyRoleFilesDependsOn)
+      CopySNIRoleFiles;
+    </CopyRoleFilesDependsOn>
   </PropertyGroup>
 </Project>
