@@ -31,6 +31,9 @@
     <SNIFiles Condition="'$(MSBuildThisFileDirectory)' != '' And
                                    HasTrailingSlash('$(MSBuildThisFileDirectory)')"
                         Include="$(MSBuildThisFileDirectory)**\SNI.*" />
+    <SNIDllFiles Condition="'$(MSBuildThisFileDirectory)' != '' And
+                                    HasTrailingSlash('$(MSBuildThisFileDirectory)')"
+                        Include="$(MSBuildThisFileDirectory)**\SNI.dll" />
   </ItemGroup>
 
   <!--
@@ -89,16 +92,31 @@
           Condition="'$(CopySNIFiles)' != 'false' And
                      '$(PublishSNIFiles)' != 'false' And
                      '$(PublishDir)' != '' And
+                     '$(_DeploymentApplicationDir)' == '' And
                      HasTrailingSlash('$(PublishDir)') And
                      Exists('$(PublishDir)')"
-          Inputs="@(SNIFiles)"
-          Outputs="@(SNIFiles -> '$(PublishDir)%(RecursiveDir)%(Filename)%(Extension)')">
+          Inputs="@(SNIDllFiles)"
+          Outputs="@(SNIDllFiles -> '$(PublishDir)%(RecursiveDir)%(Filename)%(Extension)')">
     <!--
-        NOTE: Copy "SNI.dll" and all related files, for every
-              architecture that we support, to the build output directory.
+        NOTE: Copy "SNI.dll" only to the publish output directory.
     -->
-    <Copy SourceFiles="@(SNIFiles)"
-          DestinationFiles="@(SNIFiles -> '$(PublishDir)%(RecursiveDir)%(Filename)%(Extension)')" />
+    <Copy SourceFiles="@(SNIDllFiles)"
+          DestinationFiles="@(SNIDllFiles -> '$(PublishDir)%(RecursiveDir)%(Filename)%(Extension)')" />
+  </Target>
+
+  <Target Name="_CopySNIFilesToPublishFolder" AfterTargets="_CopyFilesToPublishFolder" 
+            Condition="'$(CopySNIFiles)' != 'false' And
+                      '$(_CopySNIFilesToPublishFolder)' != 'false' And
+                      '$(_DeploymentApplicationDir)' != '' And
+                      HasTrailingSlash('$(_DeploymentApplicationDir)') And
+                      Exists('$(_DeploymentApplicationDir)')"
+            Inputs="@(SNIDllFiles)"
+            Outputs="@(SNIDllFiles -> '$(_DeploymentApplicationDir)%(RecursiveDir)%(Filename)%(Extension)')">
+    <!--
+        NOTE: Copy "SNI.dll" only to the publish output directory.
+    -->
+    <Copy SourceFiles="@(SNIDllFiles)"
+          DestinationFiles="@(SNIDllFiles -> '$(_DeploymentApplicationDir)%(RecursiveDir)%(Filename)%(Extension)')" />
   </Target>
 
   <!--
