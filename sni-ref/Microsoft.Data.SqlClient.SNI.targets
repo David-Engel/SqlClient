@@ -28,12 +28,13 @@
   -->
 
   <ItemGroup>
-    <SNIFiles Condition="'$(MSBuildThisFileDirectory)' != '' And
-                                   HasTrailingSlash('$(MSBuildThisFileDirectory)')"
-                        Include="$(MSBuildThisFileDirectory)**\SNI.*" />
     <SNIDllFiles Condition="'$(MSBuildThisFileDirectory)' != '' And
                                     HasTrailingSlash('$(MSBuildThisFileDirectory)')"
-                        Include="$(MSBuildThisFileDirectory)**\SNI.dll" />
+                        Include="$(MSBuildThisFileDirectory)**\Microsoft.Data.SqlClient.SNI.*.dll" />
+    <SNIFiles Condition="'$(MSBuildThisFileDirectory)' != '' And
+                                   HasTrailingSlash('$(MSBuildThisFileDirectory)')"
+                        Include="$(MSBuildThisFileDirectory)**\Microsoft.Data.SqlClient.SNI.*"
+                        Exclude="$(MSBuildThisFileDirectory)**\*.targets" />
   </ItemGroup>
 
   <!--
@@ -65,8 +66,8 @@
           Inputs="@(SNIFiles)"
           Outputs="@(SNIFiles -> '$(OutDir)%(RecursiveDir)%(Filename)%(Extension)')">
     <!--
-        NOTE: Copy "SNI.dll" and all related files, for every
-              architecture that we support, to the build output directory.
+        NOTE: Copy "Microsoft.Data.SqlClient.SNI.dll" and all related files, for every
+              architecture that we support, to the build output directory.        
     -->
     <Copy SourceFiles="@(SNIFiles)"
           DestinationFiles="@(SNIFiles -> '$(OutDir)%(RecursiveDir)%(Filename)%(Extension)')" />
@@ -77,8 +78,8 @@
           Inputs="@(SNIFiles)"
           Outputs="@(SNIFiles -> '$(_IntermediateWorkerOutputPath)%(RecursiveDir)%(Filename)%(Extension)')">
     <!--
-        NOTE: Copy "SNI.dll" and all related files, for every
-              architecture that we support, to the build output directory.
+        NOTE: Copy "Microsoft.Data.SqlClient.SNI.dll" and all related files, for every
+              architecture that we support, to the build output directory.        
     -->
     <PropertyGroup>
       <_IntermediateWorkerOutputPath>%(WorkerRoleReferences.OutputDir)</_IntermediateWorkerOutputPath>
@@ -98,7 +99,8 @@
           Inputs="@(SNIDllFiles)"
           Outputs="@(SNIDllFiles -> '$(PublishDir)%(RecursiveDir)%(Filename)%(Extension)')">
     <!--
-        NOTE: Copy "SNI.dll" only to the publish output directory.
+        NOTE: Copy "Microsoft.Data.SqlClient.SNI.dll" only to the publish directory.
+
     -->
     <Copy SourceFiles="@(SNIDllFiles)"
           DestinationFiles="@(SNIDllFiles -> '$(PublishDir)%(RecursiveDir)%(Filename)%(Extension)')" />
@@ -113,7 +115,7 @@
             Inputs="@(SNIDllFiles)"
             Outputs="@(SNIDllFiles -> '$(_DeploymentApplicationDir)%(RecursiveDir)%(Filename)%(Extension)')">
     <!--
-        NOTE: Copy "SNI.dll" only to the publish output directory.
+        NOTE: Copy "Microsoft.Data.SqlClient.SNI.dll" only to the publish output directory.
     -->
     <Copy SourceFiles="@(SNIDllFiles)"
           DestinationFiles="@(SNIDllFiles -> '$(_DeploymentApplicationDir)%(RecursiveDir)%(Filename)%(Extension)')" />
@@ -129,7 +131,7 @@
                      HasTrailingSlash('$(OutDir)') And
                      Exists('$(OutDir)')">
     <!--
-        NOTE: Delete "SNI.dll" and all related files, for every
+        NOTE: Delete "Microsoft.Data.SqlClient.SNI.dll" and all related files, for every
               architecture that we support, from the build output directory.
     -->
     <Delete Files="@(SNIFiles -> '$(OutDir)%(RecursiveDir)%(Filename)%(Extension)')" />
@@ -167,6 +169,10 @@
       $(BuildDependsOn);
       CopySNIFiles;
     </BuildDependsOn>
+    <PrepareForRunDependsOn>
+      $(PrepareForRunDependsOn);
+      CopySNIFiles;
+    </PrepareForRunDependsOn>
     <CleanDependsOn>
       $(CleanDependsOn);
       CleanSNIFiles;
