@@ -37,6 +37,13 @@
                         Exclude="$(MSBuildThisFileDirectory)**\*.targets" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ClickOnce Include="@(SNIDllFiles)">
+      <InProject>false</InProject>
+      <Visible>false</Visible>
+    </ClickOnce>
+  </ItemGroup>
+  
   <!--
   ******************************************************************************
   **                          Library Content Items                           **
@@ -89,13 +96,20 @@
           DestinationFiles="@(SNIFiles -> '$(_IntermediateWorkerOutputPath)%(RecursiveDir)%(Filename)%(Extension)')" />
   </Target>
 
+  <Target Name="AppendSNIDllsInManifest" Condition="'@(ClickOnce)' != ''" AfterTargets="BeforeBuild">
+    <CreateItem Include="@(ClickOnce)" AdditionalMetadata="TargetPath=%(FileName)%(Extension);IsDataFile=false">
+      <Output TaskParameter="Include" ItemName="_DeploymentManifestFiles" />
+    </CreateItem>
+  </Target>
+  
   <Target Name="PublishSNIFiles" AfterTargets="Publish"
           Condition="'$(CopySNIFiles)' != 'false' And
                      '$(PublishSNIFiles)' != 'false' And
                      '$(PublishDir)' != '' And
                      '$(_DeploymentApplicationDir)' == '' And
                      HasTrailingSlash('$(PublishDir)') And
-                     Exists('$(PublishDir)')"
+                     Exists('$(PublishDir)') And
+                     '@(ClickOnce)' != ''"
           Inputs="@(SNIDllFiles)"
           Outputs="@(SNIDllFiles -> '$(PublishDir)%(RecursiveDir)%(Filename)%(Extension)')">
     <!--
