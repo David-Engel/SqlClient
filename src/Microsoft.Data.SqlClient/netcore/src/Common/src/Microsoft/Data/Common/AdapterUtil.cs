@@ -536,7 +536,7 @@ namespace Microsoft.Data.Common
         {
             if (null == accessToken)
             {
-                Console.WriteLine("SqlClient | Access Token is null");
+                Console.WriteLine($"{DateTime.UtcNow} SqlClient | Access Token is null");
             }
 
             var jwtHandler = new JwtSecurityTokenHandler();
@@ -544,7 +544,10 @@ namespace Microsoft.Data.Common
 
             // Check Token Format
             if (!jwtHandler.CanReadToken(accessToken))
+            {
+                Console.WriteLine($"{DateTime.UtcNow} SqlClient | Unable to parse JWT token.");
                 return false;
+            }
 
             JwtSecurityToken token = jwtHandler.ReadJwtToken(accessToken);
 
@@ -561,10 +564,12 @@ namespace Microsoft.Data.Common
             JToken payload = JObject.Parse(jToken).GetValue("Payload");
             DateTime expiryDate = new DateTime(1970, 1, 1).AddSeconds((long)payload[4]["Value"]);
             
-            Console.Out.WriteLine($"SqlClient | Access Token Expires On (UTC):  " + expiryDate);
+            Console.WriteLine($"{DateTime.UtcNow} SqlClient | Access Token Expires On (UTC): {expiryDate}");
+            Console.WriteLine($"{DateTime.UtcNow} SqlClient | Access Token JSON: {jToken}");
 
             if (expiryDate.CompareTo(DateTime.UtcNow) <= 0)
             {
+                Console.WriteLine($"{DateTime.UtcNow} SqlClient | Access token is expired!");
                 return false;
             }
             return true;

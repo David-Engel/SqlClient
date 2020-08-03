@@ -467,7 +467,9 @@ namespace Microsoft.Data.SqlClient
 
             if (accessToken != null)
             {
-                _accessTokenInBytes = System.Text.Encoding.Unicode.GetBytes(accessToken);
+                _accessTokenInBytes = Encoding.Unicode.GetBytes(accessToken);
+                Console.WriteLine($"{DateTime.UtcNow} SqlClient | Creating new TDS internal connection using accessToken: [{accessToken}] > Client Connection Id: {_clientConnectionId}");
+                ADP.IsValidAccessToken(accessToken);
             }
 
             _activeDirectoryAuthTimeoutRetryHelper = new ActiveDirectoryAuthenticationTimeoutRetryHelper();
@@ -529,7 +531,7 @@ namespace Microsoft.Data.SqlClient
             {
                 ThreadHasParserLockForClose = false;
                 _parserLock.Release();
-                Console.WriteLine("SqlClient | New TDS internal connection created > Client Connection Id: " + _clientConnectionId);
+                Console.WriteLine($"{DateTime.UtcNow} SqlClient | New TDS internal connection created > Client Connection Id: {_clientConnectionId}");
             }
             SqlClientEventSource.Log.AdvancedTraceEvent("<sc.SqlInternalConnectionTds.ctor|ADV> {0}, constructed new TDS internal connection", ObjectID);
         }
@@ -884,7 +886,7 @@ namespace Microsoft.Data.SqlClient
                 Enlist(null);
             }
 
-            Console.WriteLine("SqlClient | Activate Pooled Connection > Client Connection Id: " + _clientConnectionId);
+            Console.WriteLine($"{DateTime.UtcNow} SqlClient | Activate Pooled Connection > Client Connection Id: {_clientConnectionId}");
         }
 
         protected override void InternalDeactivate()
@@ -1322,6 +1324,7 @@ namespace Microsoft.Data.SqlClient
             if (_accessTokenInBytes != null)
             {
                 requestedFeatures |= TdsEnums.FeatureExtension.FedAuth;
+                Console.WriteLine($"{DateTime.UtcNow} SqlClient | Creating new FederatedAuthenticationFeatureExtensionData with accessToken: [{Encoding.Unicode.GetString(_accessTokenInBytes)}]");
                 _fedAuthFeatureExtensionData = new FederatedAuthenticationFeatureExtensionData
                 {
                     libraryType = TdsEnums.FedAuthLibrary.SecurityToken,

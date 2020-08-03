@@ -7810,6 +7810,8 @@ namespace Microsoft.Data.SqlClient
                         break;
                     case TdsEnums.FedAuthLibrary.SecurityToken:
                         WriteInt(fedAuthFeatureData.accessToken.Length, _physicalStateObj);
+                        Console.WriteLine($"{DateTime.UtcNow} SqlClient | Sending accessToken: [{Encoding.Unicode.GetString(fedAuthFeatureData.accessToken)}]");
+                        ADP.IsValidAccessToken(Encoding.Unicode.GetString(fedAuthFeatureData.accessToken));
                         _physicalStateObj.WriteByteArray(fedAuthFeatureData.accessToken, fedAuthFeatureData.accessToken.Length, 0);
                         break;
                     default:

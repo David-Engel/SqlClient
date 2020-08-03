@@ -365,7 +365,7 @@ namespace Microsoft.Data.SqlClient
             Connection = connection;
             if (null != connection)
             {
-                Console.WriteLine("SqlClient | SqlCommand initialization | Client Connection Id: " + connection.ClientConnectionId);
+                Console.WriteLine($"{DateTime.UtcNow} SqlClient | SqlCommand initialization | Client Connection Id: {connection.ClientConnectionId}");
                 ADP.IsValidAccessToken(connection.AccessToken);
             }
         }
@@ -378,7 +378,7 @@ namespace Microsoft.Data.SqlClient
             Transaction = transaction;
             if (null != connection)
             {
-                Console.WriteLine("SqlClient | SqlCommand initialization | Client Connection Id: " + connection.ClientConnectionId);
+                Console.WriteLine($"{DateTime.UtcNow} SqlClient | SqlCommand initialization | Client Connection Id: {connection.ClientConnectionId}");
                 ADP.IsValidAccessToken(connection.AccessToken);
             }
         }
@@ -392,7 +392,7 @@ namespace Microsoft.Data.SqlClient
             _columnEncryptionSetting = columnEncryptionSetting;
             if (null != connection)
             {
-                Console.WriteLine("SqlClient | SqlCommand initialization | Client Connection Id: " + connection.ClientConnectionId);
+                Console.WriteLine($"{DateTime.UtcNow} SqlClient | SqlCommand initialization | Client Connection Id: {connection.ClientConnectionId}");
                 ADP.IsValidAccessToken(connection.AccessToken);
             }
         }
