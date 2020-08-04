@@ -565,7 +565,6 @@ namespace Microsoft.Data.Common
             DateTime expiryDate = new DateTime(1970, 1, 1).AddSeconds((long)payload[4]["Value"]);
             
             Console.WriteLine($"{DateTime.UtcNow} SqlClient | Access Token Expires On (UTC): {expiryDate}");
-            Console.WriteLine($"{DateTime.UtcNow} SqlClient | Access Token JSON: {jToken}");
 
             if (expiryDate.CompareTo(DateTime.UtcNow) <= 0)
             {
