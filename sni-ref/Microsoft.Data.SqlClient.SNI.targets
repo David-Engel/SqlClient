@@ -166,6 +166,29 @@
 
   <!--
   ******************************************************************************
+  **                        Azure Cloud Service Targets                       **
+  ******************************************************************************
+  -->
+
+	<Target Name="CollectSNIWorkerRoleFiles" AfterTargets="CollectWorkerRoleFiles">
+		<ItemGroup>
+			<SNIWorkerFiles Include="$(WorkerTargetDir)\**\Microsoft.Data.SqlClient.SNI.*.dll" />
+		</ItemGroup>
+		<FindTargetPath Files="@(SNIWorkerFiles)" FindUnderTargetDir="$(WorkerTargetDir)">
+      		<Output TaskParameter="ItemWithTargetPath" ItemName="SNIWorkerFilesWithTargetPath" />
+		</FindTargetPath>
+            <Message Text="SNIWorkerFilesWithTargetPath=@(SNIWorkerFilesWithTargetPath), %(TargetPath)" />
+		<ItemGroup>
+			<WorkerFiles Include="@(SNIWorkerFilesWithTargetPath)">
+				<TargetPath>%(TargetPath)</TargetPath>
+				<RoleOwner>$(_WorkerRoleProject)</RoleOwner>
+				<RoleOwnerName>$(_WorkerRoleProjectName)</RoleOwnerName>
+			</WorkerFiles>
+		</ItemGroup>
+	</Target>
+
+  <!--
+  ******************************************************************************
   **                         Library Build Properties                         **
   ******************************************************************************
   -->
