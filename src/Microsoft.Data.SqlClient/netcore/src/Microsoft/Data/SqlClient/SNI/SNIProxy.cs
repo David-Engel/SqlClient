@@ -24,7 +24,7 @@ namespace Microsoft.Data.SqlClient.SNI
         private static readonly SNIProxy s_singleton = new SNIProxy();
 
         internal static SNIProxy Instance => s_singleton;
-
+#if !NET7_0_OR_GREATER 
         /// <summary>
         /// Generate SSPI context
         /// </summary>
@@ -105,11 +105,11 @@ namespace Microsoft.Data.SqlClient.SNI
                 // so we don't need to check for a GssApiException here.
                 if (statusCode.ErrorCode == SecurityStatusPalErrorCode.InternalError)
                 {
-                    throw new InvalidOperationException(SQLMessage.KerberosTicketMissingError() + "\n" + statusCode);
+                    throw new InvalidOperationException(SQLMessage.KerberosTicketMissingError() + Environment.NewLine + statusCode);
                 }
                 else
                 {
-                    throw new InvalidOperationException(SQLMessage.SSPIGenerateError() + "\n" + statusCode);
+                    throw new InvalidOperationException(SQLMessage.SSPIGenerateError() + Environment.NewLine + statusCode);
                 }
             }
         }
@@ -125,12 +125,11 @@ namespace Microsoft.Data.SqlClient.SNI
                 errorCode != SecurityStatusPalErrorCode.CredentialsNeeded &&
                 errorCode != SecurityStatusPalErrorCode.Renegotiate;
         }
-
+#endif
         /// <summary>
         /// Create a SNI connection handle
         /// </summary>
         /// <param name="fullServerName">Full server name from connection string</param>
-        /// <param name="ignoreSniOpenTimeout">Ignore open timeout</param>
         /// <param name="timerExpire">Timer expiration</param>
         /// <param name="instanceName">Instance name</param>
         /// <param name="spnBuffer">SPN</param>
@@ -149,7 +148,6 @@ namespace Microsoft.Data.SqlClient.SNI
         /// <returns>SNI handle</returns>
         internal static SNIHandle CreateConnectionHandle(
             string fullServerName,
-            bool ignoreSniOpenTimeout,
             long timerExpire,
             out byte[] instanceName,
             ref byte[][] spnBuffer,
@@ -354,4 +352,3 @@ namespace Microsoft.Data.SqlClient.SNI
             return SNILoadHandle.SingletonInstance.LastError;
         }
     }
-}

@@ -1,12 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="Current" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
-    <AssemblyFileVersion Condition="'$(AssemblyFileVersion)' == ''">1.0.0.0</AssemblyFileVersion>
+    <MdsVersionDefault>5.2.0</MdsVersionDefault>
+    <BuildNumber Condition="'$(BuildNumber)' == ''">0</BuildNumber>
+    <AssemblyFileVersion Condition="'$(AssemblyFileVersion)' == ''">$(MdsVersionDefault).$(BuildNumber)</AssemblyFileVersion>
+    <FileVersion>$(AssemblyFileVersion)</FileVersion>
     <!-- This Assembly version corresponds to version of Microsoft.Data.SqlClient Assembly. -->
     <!-- Should only be changed in future when a non-backwards compatible driver is released. -->
     <!-- Future Assembly Version values shall be Major.Minor.0.0; e.g. 4.0.0.0 -->
     <AssemblyVersion>5.0.0.0</AssemblyVersion>
-    <NugetPackageVersion Condition="'$(NugetPackageVersion)' == ''">5.2.0-dev</NugetPackageVersion>
+    <NugetPackageVersion Condition="'$(NugetPackageVersion)' == ''">$(MdsVersionDefault)-dev</NugetPackageVersion>
     <Version>$(NugetPackageVersion)</Version>
   </PropertyGroup>
   <PropertyGroup>
@@ -25,7 +28,7 @@
   <!-- NetFx and NetCore project dependencies -->
   <PropertyGroup>
     <AzureIdentityVersion>1.8.0</AzureIdentityVersion>
-    <MicrosoftIdentityClientVersion>4.47.2</MicrosoftIdentityClientVersion>
+    <MicrosoftIdentityClientVersion>4.53.0</MicrosoftIdentityClientVersion>
     <MicrosoftIdentityModelProtocolsOpenIdConnectVersion>6.24.0</MicrosoftIdentityModelProtocolsOpenIdConnectVersion>
     <MicrosoftIdentityModelJsonWebTokensVersion>6.24.0</MicrosoftIdentityModelJsonWebTokensVersion>
     <SystemBuffersVersion>4.5.1</SystemBuffersVersion>
@@ -74,6 +77,7 @@
     <MicrosoftSqlServerTypesVersionNet>160.1000.6</MicrosoftSqlServerTypesVersionNet>
     <BenchmarkDotNetVersion>0.13.2</BenchmarkDotNetVersion>
     <SystemServiceProcessServiceControllerVersion>6.0.0</SystemServiceProcessServiceControllerVersion>
+    <MicrosoftExtensionsHosting>6.0.0</MicrosoftExtensionsHosting>
   </PropertyGroup>
   <PropertyGroup>
     <TestAKVProviderVersion>$(NugetPackageVersion)</TestAKVProviderVersion>

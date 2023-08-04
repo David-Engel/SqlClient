@@ -318,7 +318,7 @@ namespace Microsoft.Data.SqlClient
         private bool InferNamedPipesInformation()
         {
             // If we have a datasource beginning with a pipe or we have already determined that the protocol is Named Pipe
-            if (_dataSourceAfterTrimmingProtocol.StartsWith(PipeBeginning) || _connectionProtocol == Protocol.NP)
+            if (_dataSourceAfterTrimmingProtocol.StartsWith(PipeBeginning, StringComparison.Ordinal) || _connectionProtocol == Protocol.NP)
             {
                 // If the data source is "np:servername"
                 if (!_dataSourceAfterTrimmingProtocol.Contains(PipeBeginning))
@@ -357,7 +357,7 @@ namespace Microsoft.Data.SqlClient
                         throw SqlException.CreateException(LocalDBErrorFormat(ProviderEnum.NP_PROV, ServerName), "");
                     }
 
-                    if (tokensByBackSlash[4].StartsWith(NamedPipeInstanceNameHeader))
+                    if (tokensByBackSlash[4].StartsWith(NamedPipeInstanceNameHeader, StringComparison.Ordinal))
                     {
                         InstanceName = tokensByBackSlash[4].Substring(NamedPipeInstanceNameHeader.Length);
                     }

@@ -4,6 +4,48 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
+## [Preview Release 5.2.0-preview3.23201.1] - 2023-07-20
+
+This update brings the below changes over the previous release:
+
+### Added
+
+- Added a new `AccessTokenCallBack` API to `SqlConnection`. [#1260](https://github.com/dotnet/SqlClient/pull/1260)
+- Added support for the `SuperSocketNetLib` registry option for Encrypt on .NET on Windows. [#2047](https://github.com/dotnet/SqlClient/pull/2047)
+
+### Fixed
+
+- Fixed `SqlDataAdapter.Fill` and configurable retry logic issue on .NET Framework. [#2084](https://github.com/dotnet/SqlClient/pull/2084)
+- Fixed `SqlConnectionEncryptOption` type conversion by introducing the `SqlConnectionEncryptOptionConverter` attribute when using **appsettings.json** files. [#2057](https://github.com/dotnet/SqlClient/pull/2057)
+- Fixed th-TH culture info issue on Managed SNI. [#2066](https://github.com/dotnet/SqlClient/pull/2066)
+
+### Changed
+
+- Switched to the new .NET [NegotiateAuthentication](https://learn.microsoft.com/en-us/dotnet/api/system.net.security.negotiateauthentication?view=net-7.0) API on .NET 7.0 and above for SSPI token negotiation using Managed SNI. [#2063](https://github.com/dotnet/SqlClient/pull/2063)
+- Removed `ignoreSniOpenTimeout` in open connection process on Windows. [#2067](https://github.com/dotnet/SqlClient/pull/2067)
+- Enforce explicit ordinal for internal `StringComparison` operations. [#2068](https://github.com/dotnet/SqlClient/pull/2068)
+- Code health improvements: [#1959](https://github.com/dotnet/SqlClient/pull/1959), [#2071](https://github.com/dotnet/SqlClient/pull/2071), [#2073](https://github.com/dotnet/SqlClient/pull/2073), [#2088](https://github.com/dotnet/SqlClient/pull/2088)
+
+## [Preview Release 5.2.0-preview2.23159.1] - 2023-06-08
+
+This update brings the below changes over the previous release:
+
+### Added
+
+- Added new property `RowsCopied64` to `SqlBulkCopy`. [#2004](https://github.com/dotnet/SqlClient/pull/2004)
+
+### Fixed
+
+- Fixed socket synchronization issue during connect in managed SNI. [#1029](https://github.com/dotnet/SqlClient/pull/1029)
+- Fixed issue with `SqlConnectionStringBuilder` property indexer not supporting non-string values. [#2018](https://github.com/dotnet/SqlClient/pull/2018)
+
+### Changed
+
+- Moved to new System.Data.SqlTypes APIs in **.NET 7** and upper. [1934](https://github.com/dotnet/SqlClient/pull/1934) and [#1981](https://github.com/dotnet/SqlClient/pull/1981)
+- Changed **[UseOneSecFloorInTimeoutCalculationDuringLogin](https://learn.microsoft.com/sql/connect/ado-net/appcontext-switches#enable-a-minimum-timeout-during-login)** App Context switch default to **true** and extended its effect to .NET and .NET Standard. [#2012](https://github.com/dotnet/SqlClient/pull/2012)
+- Updated `Microsoft.Identity.Client` version from 4.47.2 to 4.53.0. [#2031](https://github.com/dotnet/SqlClient/pull/2031), [#2055](https://github.com/dotnet/SqlClient/pull/2055) 
+- Code health improvement: [#1985](https://github.com/dotnet/SqlClient/pull/1985)
+
 ## [Preview Release 5.2.0-preview1.23109.1] - 2023-04-20
 
 This update brings the below changes over the previous release:
