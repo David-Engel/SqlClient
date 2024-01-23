@@ -88,6 +88,7 @@ namespace Microsoft.SqlServer.TDS.Servers
             FedAuthRequiredPreLoginOption = TdsPreLoginFedAuthRequiredOption.FedAuthNotRequired;
 
             EncryptionCertificate = new X509Certificate2("TdsServerCertificate.pfx", "SecretPassword123456");
+            //EncryptionCertificate = new X509Certificate2("TdsServerCertificate.pfx", "SecretPassword123456", X509KeyStorageFlags.UserKeySet);
 
             ServerPrincipalName = AzureADServicePrincipalName;
             StsUrl = AzureADProductionTokenEndpoint;

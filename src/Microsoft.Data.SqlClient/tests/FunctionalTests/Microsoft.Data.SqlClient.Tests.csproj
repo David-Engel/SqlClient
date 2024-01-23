@@ -35,6 +35,7 @@
     <Compile Include="SqlCommandBuilderTest.cs" />
     <Compile Include="SqlBulkCopyTest.cs" />
     <Compile Include="SqlClientMetaDataCollectionNamesTest.cs" />
+    <Compile Include="SqlConnectionEncryptionTests.cs" />
     <Compile Include="SqlDataAdapterTest.cs" />
     <Compile Include="SqlConnectionBasicTests.cs" />
     <Compile Include="SqlCommandTest.cs" />
@@ -108,5 +109,10 @@
   <ItemGroup>
     <None Condition="'$(TargetGroup)'=='netfx' AND $(ReferenceType)=='Project'" Include="$(BinFolder)$(Configuration).AnyCPU\Microsoft.Data.SqlClient\netfx\**\*SNI*.dll" CopyToOutputDirectory="PreserveNewest" />
     <PackageReference Condition="$(ReferenceType.Contains('Package'))" Include="Microsoft.Identity.Client" Version="$(MicrosoftIdentityClientVersion)" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Update="localhost123_server.pfx">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 </Project>
