@@ -38,15 +38,17 @@ namespace Microsoft.SqlServer.TDS.EndPoint
         /// <summary>
         /// Initialization constructor
         /// </summary>
-        public TDSParser(Stream transport)
+        public TDSParser(Stream transport, TextWriter eventLog)
         {
             // Save original transport
             _originalTransport = transport;
 
-            ServerSslProtocol = SslProtocols.Tls12;
+            ServerSslProtocol = SslProtocols.None;
 
             // Wrap transport layer with TDS
             Transport = new TDSStream(transport, false);
+
+            EventLog = eventLog;
         }
 
         /// <summary>
@@ -62,7 +64,7 @@ namespace Microsoft.SqlServer.TDS.EndPoint
         /// </summary>
         public static void ResetTargetProtocol()
         {
-            ServerSslProtocol = SslProtocols.Tls12;
+            ServerSslProtocol = SslProtocols.None;
         }
 
         /// <summary>
@@ -128,7 +130,7 @@ namespace Microsoft.SqlServer.TDS.EndPoint
             SslStream ssl = new SslStream(multiplexer, true);
 
             // Secure the channel
-            ssl.AuthenticateAsServer(certificate, false, ServerSslProtocol, false);
+            ssl.AuthenticateAsServer(certificate);
 
             // Replace TDS stream with raw transport stream in multiplexer
             multiplexer.InnerStream = Transport.InnerStream;

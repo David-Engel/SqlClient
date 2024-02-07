@@ -261,18 +261,18 @@ namespace Microsoft.SqlServer.TDS
                 {
                     return TDSPreLoginTokenEncryptionType.On;
                 }
-                else if (server == TDSPreLoginTokenEncryptionType.None)
+                else if (server == TDSPreLoginTokenEncryptionType.Excluded)
                 {
-                    return TDSPreLoginTokenEncryptionType.None;
+                    return TDSPreLoginTokenEncryptionType.Excluded;
                 }
                 else
                 {
                     throw new ArgumentException("Server is configured to not support encryption", "server");
                 }
             }
-            else if (client == TDSPreLoginTokenEncryptionType.None)
+            else if (client == TDSPreLoginTokenEncryptionType.Excluded)
             {
-                return TDSPreLoginTokenEncryptionType.None;
+                return TDSPreLoginTokenEncryptionType.Excluded;
             }
 
             // This case is not documented so pick a default
@@ -321,7 +321,7 @@ namespace Microsoft.SqlServer.TDS
                     return TDSEncryptionType.LoginOnly;
                 }
             }
-            else if (client == TDSPreLoginTokenEncryptionType.None)
+            else if (client == TDSPreLoginTokenEncryptionType.Excluded)
             {
                 return TDSEncryptionType.None;
             }

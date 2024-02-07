@@ -331,7 +331,7 @@ namespace Microsoft.SqlServer.TDS.PreLogin
                 options.Add(new TDSPreLoginTokenOption(TDSPreLoginTokenOptionType.NonceOption, (ushort)Nonce.Length));
             }
 
-            if (Encryption != TDSPreLoginTokenEncryptionType.None)
+            if (Encryption != TDSPreLoginTokenEncryptionType.Excluded)
             {
                 options.Add(new TDSPreLoginTokenOption(TDSPreLoginTokenOptionType.Encryption, 1));
             }

@@ -135,21 +135,18 @@ namespace Microsoft.SqlServer.TDS.EndPoint
                     if (ClientSocket != null)
                     {
                         // Create a client TDS parser with TCP transport
-                        ClientParser = new TDSClientParser(TDSClient, ClientSocket.GetStream());
+                        ClientParser = new TDSClientParser(TDSClient, ClientSocket.GetStream(), EventLog);
                     }
                     else
                     {
                         // Create a client TDS parser through named pipes transort
-                        ClientParser = new TDSClientParser(TDSClient, ClientPipe);
+                        ClientParser = new TDSClientParser(TDSClient, ClientPipe, EventLog);
                     }
 
                     if (_funcTDSStreamPreWriteCallBack != null)
                     {
                         ClientParser.SetTDSStreamPreWriteCallback(_funcTDSStreamPreWriteCallBack);
                     }
-
-                    // Assign event log
-                    ClientParser.EventLog = EventLog;
 
                     // Run login sequence
                     ClientParser.Login();

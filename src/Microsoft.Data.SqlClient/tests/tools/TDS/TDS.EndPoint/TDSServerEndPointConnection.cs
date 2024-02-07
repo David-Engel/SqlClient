@@ -23,8 +23,8 @@ namespace Microsoft.SqlServer.TDS.EndPoint
     {
         private TDSServerParser _parser;
 
-        public TDSServerEndPointConnection(ITDSServer server, TcpClient connection)
-            : base(server, connection)
+        public TDSServerEndPointConnection(ITDSServer server, TcpClient connection, TextWriter eventLog)
+            : base(server, connection, eventLog)
         {
         }
 
@@ -32,7 +32,7 @@ namespace Microsoft.SqlServer.TDS.EndPoint
         {
             // Create a server TDS parser
             Debug.Assert(_parser == null, "PrepareForProcessingData should not be called twice");
-            _parser = new TDSServerParser(Server, Session, rawStream);
+            _parser = new TDSServerParser(Server, Session, rawStream, EventLog);
         }
 
         public override void ProcessData(Stream rawStream)
@@ -84,13 +84,15 @@ namespace Microsoft.SqlServer.TDS.EndPoint
         /// <summary>
         /// Initialization constructor
         /// </summary>
-        public ServerEndPointConnection(ITDSServer server, TcpClient connection)
+        public ServerEndPointConnection(ITDSServer server, TcpClient connection, TextWriter eventLog)
         {
             // Save server
             Server = server;
 
             // Save TCP connection
             Connection = connection;
+
+            EventLog = eventLog;
 
             // Configure timeouts
             Connection.ReceiveTimeout = 1000;

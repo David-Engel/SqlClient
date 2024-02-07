@@ -128,7 +128,7 @@ namespace Microsoft.SqlServer.TDS.Servers
             };
 
             TransientFaultTDSServer server = engine == null ? new TransientFaultTDSServer(args) : new TransientFaultTDSServer(engine, args);
-            server._endpoint = new TDSServerEndPoint(server) { ServerEndPoint = new IPEndPoint(IPAddress.Any, 0) };
+            server._endpoint = new TDSServerEndPoint(server, args.Log) { ServerEndPoint = new IPEndPoint(IPAddress.Any, 0) };
             server._endpoint.EndpointName = methodName;
 
             // The server EventLog should be enabled as it logs the exceptions.

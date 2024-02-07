@@ -82,7 +82,7 @@ namespace Microsoft.SqlServer.TDS.Servers
             PacketSize = 4096;
 
             // By default we don't support encryption
-            Encryption = TDSPreLoginTokenEncryptionType.NotSupported;
+            Encryption = TDSPreLoginTokenEncryptionType.On;
 
             // By Default SQL authentication will be used.
             FedAuthRequiredPreLoginOption = TdsPreLoginFedAuthRequiredOption.FedAuthNotRequired;

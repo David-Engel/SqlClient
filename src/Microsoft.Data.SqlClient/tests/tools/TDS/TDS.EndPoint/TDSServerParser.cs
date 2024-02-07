@@ -31,8 +31,8 @@ namespace Microsoft.SqlServer.TDS.EndPoint
         /// <summary>
         /// Server TDS parser initialization constructor
         /// </summary>
-        public TDSServerParser(ITDSServer server, ITDSServerSession session, Stream stream) :
-            base(stream)
+        public TDSServerParser(ITDSServer server, ITDSServerSession session, Stream stream, TextWriter eventLog) :
+            base(stream, eventLog)
         {
             // Save TDS server
             Server = server;
@@ -71,7 +71,7 @@ namespace Microsoft.SqlServer.TDS.EndPoint
                         {
                             if (Session.Encryption == TDSEncryptionType.None)
                             {
-                                (MessageBeingReceived[0] as TDSPreLoginToken).Encryption = TDSPreLoginTokenEncryptionType.None;
+                                (MessageBeingReceived[0] as TDSPreLoginToken).Encryption = TDSPreLoginTokenEncryptionType.Excluded;
                             }
 
                             // Call into the subscriber to process the packet

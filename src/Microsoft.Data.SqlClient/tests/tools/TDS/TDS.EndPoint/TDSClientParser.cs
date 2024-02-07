@@ -19,8 +19,8 @@ namespace Microsoft.SqlServer.TDS.EndPoint
         /// <summary>
         /// Client TDS parser initialization constructor
         /// </summary>
-        public TDSClientParser(ITDSClient client, Stream transport) :
-            base(transport)
+        public TDSClientParser(ITDSClient client, Stream transport, TextWriter eventLog) :
+            base(transport, eventLog)
         {
             // Save the client
             Client = client;

@@ -16,14 +16,14 @@ namespace Microsoft.SqlServer.TDS.EndPoint
     /// </summary>
     public class TDSServerEndPoint : ServerEndPointHandler<TDSServerEndPointConnection>
     {
-        public TDSServerEndPoint(ITDSServer server)
-            : base(server)
+        public TDSServerEndPoint(ITDSServer server, TextWriter eventLog)
+            : base(server, eventLog)
         {
         }
 
-        public override TDSServerEndPointConnection CreateConnection(TcpClient newConnection)
+        public override TDSServerEndPointConnection CreateConnection(TcpClient newConnection, TextWriter eventLog)
         {
-            return new TDSServerEndPointConnection(TDSServer, newConnection);
+            return new TDSServerEndPointConnection(TDSServer, newConnection, eventLog);
         }
     }
 
@@ -77,13 +77,15 @@ namespace Microsoft.SqlServer.TDS.EndPoint
         /// Initialization constructor
         /// </summary>
         /// <param name="server">TDS server instance that will process requests</param>
-        public ServerEndPointHandler(ITDSServer server)
+        public ServerEndPointHandler(ITDSServer server, TextWriter eventLog)
         {
             // Prepare connections container
             Connections = new List<T>();
 
             // Save server instance
             TDSServer = server;
+
+            EventLog = eventLog;
         }
 
         /// <summary>
@@ -186,10 +188,7 @@ namespace Microsoft.SqlServer.TDS.EndPoint
                             TcpClient newConnection = ListenerSocket.AcceptTcpClient();
 
                             // Create a new connection
-                            T connection = CreateConnection(newConnection);
-
-                            // Assign a log
-                            connection.EventLog = EventLog;
+                            T connection = CreateConnection(newConnection, EventLog);
 
                             // Subscribe for notifications
                             connection.OnConnectionClosed += new ConnectionClosedEventHandler(_OnConnectionClosed);
@@ -225,7 +224,7 @@ namespace Microsoft.SqlServer.TDS.EndPoint
         /// <summary>
         /// Creates a new connection handler for the given TCP connection
         /// </summary>
-        public abstract T CreateConnection(TcpClient newConnection);
+        public abstract T CreateConnection(TcpClient newConnection, TextWriter eventLog);
 
         /// <summary>
         /// Event handler for client connection termination
