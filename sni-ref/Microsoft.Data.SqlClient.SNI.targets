@@ -148,7 +148,7 @@
         NOTE: Delete "Microsoft.Data.SqlClient.SNI.dll" and all related files, for every
               architecture that we support, from the build output directory.
     -->
-    <Delete Files="@(SNIFiles -> '$(OutDir)%(RecursiveDir)%(Filename)%(Extension)')" />
+    <Delete Files="@(SNIFiles -> '$(OutDir)%(RecursiveDir)%(Filename)%(Extension)')" TreatErrorsAsWarnings="true" />
   </Target>
 
   <!--
