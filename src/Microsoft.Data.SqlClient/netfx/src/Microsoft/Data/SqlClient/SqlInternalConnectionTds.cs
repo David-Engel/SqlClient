@@ -139,7 +139,6 @@ namespace Microsoft.Data.SqlClient
         internal readonly Func<SqlAuthenticationParameters, CancellationToken,Task<SqlAuthenticationToken>> _accessTokenCallback;
 
         private readonly ActiveDirectoryAuthenticationTimeoutRetryHelper _activeDirectoryAuthTimeoutRetryHelper;
-        private readonly SqlAuthenticationProviderManager _sqlAuthenticationProviderManager;
 
         // Certificate auth calbacks.
         ServerCertificateValidationCallback _serverCallback;
@@ -493,7 +492,6 @@ namespace Microsoft.Data.SqlClient
             _accessTokenCallback = accessTokenCallback;
 
             _activeDirectoryAuthTimeoutRetryHelper = new ActiveDirectoryAuthenticationTimeoutRetryHelper();
-            _sqlAuthenticationProviderManager = SqlAuthenticationProviderManager.Instance;
 
             _serverCallback = serverCallback;
             _clientCallback = clientCallback;
@@ -1878,7 +1876,7 @@ namespace Microsoft.Data.SqlClient
 
                         if (routingAttempts > _maxNumberOfRedirectRoute)
                         {
-                            throw SQL.ROR_RecursiveRoutingNotSupported(this);
+                            throw SQL.ROR_RecursiveRoutingNotSupported(this, _maxNumberOfRedirectRoute.ToString());
                         }
 
                         if (timeout.IsExpired)
@@ -2147,14 +2145,16 @@ namespace Microsoft.Data.SqlClient
                     {
                         if (routingAttempts > _maxNumberOfRedirectRoute)
                         {
-                            throw SQL.ROR_RecursiveRoutingNotSupported(this);
+                            throw SQL.ROR_RecursiveRoutingNotSupported(this, _maxNumberOfRedirectRoute.ToString());
                         }
                         routingAttempts++;
 
                         SqlClientEventSource.Log.TryTraceEvent("<sc.SqlInternalConnectionTds.LoginWithFailover> Routed to {0}", _routingInfo.ServerName);
 
                         if (_parser != null)
+                        {
                             _parser.Disconnect();
+                        }
 
                         _parser = new TdsParser(ConnectionOptions.MARS, ConnectionOptions.Asynchronous);
                         Debug.Assert(SniContext.Undefined == Parser._physicalStateObj.SniContext, $"SniContext should be Undefined; actual Value: {Parser._physicalStateObj.SniContext}");
@@ -2788,7 +2788,7 @@ namespace Microsoft.Data.SqlClient
             // Username to use in error messages.
             string username = null;
 
-            var authProvider = _sqlAuthenticationProviderManager.GetProvider(ConnectionOptions.Authentication);
+            var authProvider = SqlAuthenticationProvider.GetProvider(ConnectionOptions.Authentication);
             if (authProvider == null && _accessTokenCallback == null)
                 throw SQL.CannotFindAuthProvider(ConnectionOptions.Authentication.ToString());
 

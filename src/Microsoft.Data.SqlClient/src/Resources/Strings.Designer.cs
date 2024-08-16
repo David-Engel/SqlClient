@@ -11962,7 +11962,7 @@ namespace System {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Two or more redirections have occurred. Only one redirection per login is allowed..
+        ///   Looks up a localized string similar to Too many redirections have occurred. Only {0} redirections per login are allowed..
         /// </summary>
         internal static string SQLROR_RecursiveRoutingNotSupported {
             get {

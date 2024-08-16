@@ -196,9 +196,9 @@ namespace Microsoft.Data.SqlClient
             }
         }
 
-#if NETFRAMEWORK
         private bool _isAzureSQLConnection = false; // If connected to Azure SQL
 
+#if NETFRAMEWORK
         abstract internal bool Is2000
         {
             get;
@@ -209,6 +209,7 @@ namespace Microsoft.Data.SqlClient
             get;
         }
 
+#endif
         internal bool IsAzureSQLConnection
         {
             get
@@ -220,7 +221,6 @@ namespace Microsoft.Data.SqlClient
                 _isAzureSQLConnection = value;
             }
         }
-#endif
 
         override public DbTransaction BeginTransaction(System.Data.IsolationLevel iso)
         {

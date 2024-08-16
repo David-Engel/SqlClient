@@ -106,6 +106,9 @@ namespace Microsoft.Data.SqlClient
         // https://github.com/AzureAD/microsoft-authentication-library-for-dotnet/wiki/retry-after#simple-retry-for-errors-with-http-error-codes-500-600
         internal const int MsalHttpRetryStatusCode = 429;
 
+        // Connection re-route limit
+        internal const int _maxNumberOfRedirectRoute = 10;
+
         // CONNECTION AND STATE VARIABLES
         private readonly SqlConnectionPoolGroupProviderInfo _poolGroupProviderInfo; // will only be null when called for ChangePassword, or creating SSE User Instance
         private TdsParser _parser;
@@ -1360,6 +1363,12 @@ namespace Microsoft.Data.SqlClient
             // The GLOBALTRANSACTIONS, DATACLASSIFICATION, TCE, and UTF8 support features are implicitly requested
             requestedFeatures |= TdsEnums.FeatureExtension.GlobalTransactions | TdsEnums.FeatureExtension.DataClassification | TdsEnums.FeatureExtension.Tce | TdsEnums.FeatureExtension.UTF8Support;
 
+            // The AzureSQLSupport feature is implicitly set for ReadOnly login
+            if (ConnectionOptions.ApplicationIntent == ApplicationIntent.ReadOnly)
+            {
+                requestedFeatures |= TdsEnums.FeatureExtension.AzureSQLSupport;
+            }
+
             // The SQLDNSCaching feature is implicitly set
             requestedFeatures |= TdsEnums.FeatureExtension.SQLDNSCaching;
 
@@ -1437,6 +1446,25 @@ namespace Microsoft.Data.SqlClient
                             credential,
                             timeout);
                 }
+
+                if (!IsAzureSQLConnection)
+                {
+                    // If not a connection to Azure SQL, Readonly with FailoverPartner is not supported
+                    if (ConnectionOptions.ApplicationIntent == ApplicationIntent.ReadOnly)
+                    {
+                        if (!string.IsNullOrEmpty(ConnectionOptions.FailoverPartner))
+                        {
+                            throw SQL.ROR_FailoverNotSupportedConnString();
+                        }
+
+                        if (null != ServerProvidedFailOverPartner)
+                        {
+                            throw SQL.ROR_FailoverNotSupportedServer(this);
+                        }
+
+                    }
+                }
+
                 _timeoutErrorInternal.EndPhase(SqlConnectionTimeoutErrorPhase.PostLogin);
             }
             catch (Exception e)
@@ -1553,9 +1581,10 @@ namespace Microsoft.Data.SqlClient
                     if (RoutingInfo != null)
                     {
                         SqlClientEventSource.Log.TryTraceEvent("<sc.SqlInternalConnectionTds.LoginNoFailover> Routed to {0}", serverInfo.ExtendedServerName);
-                        if (routingAttempts > 0)
+
+                        if (routingAttempts > _maxNumberOfRedirectRoute)
                         {
-                            throw SQL.ROR_RecursiveRoutingNotSupported(this);
+                            throw SQL.ROR_RecursiveRoutingNotSupported(this, _maxNumberOfRedirectRoute.ToString());
                         }
 
                         if (timeout.IsExpired)
@@ -1785,15 +1814,45 @@ namespace Microsoft.Data.SqlClient
                             withFailover: true
                             );
 
-                    if (RoutingInfo != null)
+                    int routingAttempts = 0;
+                    while (RoutingInfo != null)
                     {
-                        // We are in login with failover scenation and server sent routing information
-                        // If it is read-only routing - we did not supply AppIntent=RO (it should be checked before)
-                        // If it is something else, not known yet (future server) - this client is not designed to support this.
-                        // In any case, server should not have sent the routing info.
+                        if (routingAttempts > _maxNumberOfRedirectRoute)
+                        {
+                            throw SQL.ROR_RecursiveRoutingNotSupported(this, _maxNumberOfRedirectRoute.ToString());
+                        }
+                        routingAttempts++;
+
                         SqlClientEventSource.Log.TryTraceEvent("<sc.SqlInternalConnectionTds.LoginWithFailover> Routed to {0}", RoutingInfo.ServerName);
-                        throw SQL.ROR_UnexpectedRoutingInfo(this);
+
+                        if (_parser != null)
+                        {
+                            _parser.Disconnect();
+                        }
+
+                        _parser = new TdsParser(ConnectionOptions.MARS, ConnectionOptions.Asynchronous);
+                        Debug.Assert(SniContext.Undefined == Parser._physicalStateObj.SniContext, $"SniContext should be Undefined; actual Value: {Parser._physicalStateObj.SniContext}");
+
+                        currentServerInfo = new ServerInfo(ConnectionOptions, RoutingInfo, currentServerInfo.ResolvedServerName, currentServerInfo.ServerSPN);
+                        _originalClientConnectionId = _clientConnectionId;
+                        _routingDestination = currentServerInfo.UserServerName;
+
+                        // restore properties that could be changed by the environment tokens
+                        _currentPacketSize = ConnectionOptions.PacketSize;
+                        _currentLanguage = _originalLanguage = ConnectionOptions.CurrentLanguage;
+                        CurrentDatabase = _originalDatabase = ConnectionOptions.InitialCatalog;
+                        _currentFailoverPartner = null;
+                        _instanceName = String.Empty;
+
+                        AttemptOneLogin(
+                                currentServerInfo,
+                                newPassword,
+                                newSecurePassword,
+                                intervalTimer,
+                                withFailover: true
+                                );
                     }
+
                     break; // leave the while loop -- we've successfully connected
                 }
                 catch (SqlException sqlex)
@@ -1809,7 +1868,7 @@ namespace Microsoft.Data.SqlClient
                         throw;  // Caller will call LoginFailure()
                     }
 
-                    if (IsConnectionDoomed)
+                    if (!ADP.IsAzureSqlServerEndpoint(connectionOptions.DataSource) && IsConnectionDoomed)
                     {
                         throw;
                     }
@@ -2741,22 +2800,33 @@ namespace Microsoft.Data.SqlClient
                         break;
                     }
 
-                case TdsEnums.FEATUREEXT_UTF8SUPPORT:
+                case TdsEnums.FEATUREEXT_AZURESQLSUPPORT:
                     {
-                        SqlClientEventSource.Log.TryAdvancedTraceEvent("<sc.SqlInternalConnectionTds.OnFeatureExtAck|ADV> {0}, Received feature extension acknowledgement for UTF8 support", ObjectID);
+                        SqlClientEventSource.Log.TryAdvancedTraceEvent("<sc.SqlInternalConnectionTds.OnFeatureExtAck|ADV> {0}, Received feature extension acknowledgement for AzureSQLSupport", ObjectID);
+
                         if (data.Length < 1)
                         {
-                            SqlClientEventSource.Log.TryTraceEvent("<sc.SqlInternalConnectionTds.OnFeatureExtAck|ERR> {0}, Unknown value for UTF8 support", ObjectID);
-                            throw SQL.ParsingError();
+                            throw SQL.ParsingError(ParsingErrorState.CorruptedTdsStream);
+                        }
+
+                        IsAzureSQLConnection = true;
+
+                        //  Bit 0 for RO/FP support
+                        if ((data[0] & 1) == 1 && SqlClientEventSource.Log.IsTraceEnabled())
+                        {
+                            SqlClientEventSource.Log.TryAdvancedTraceEvent("<sc.SqlInternalConnectionTds.OnFeatureExtAck|ADV> {0}, FailoverPartner enabled with Readonly intent for AzureSQL DB", ObjectID);
                         }
                         break;
                     }
+
                 case TdsEnums.FEATUREEXT_DATACLASSIFICATION:
                     {
                         SqlClientEventSource.Log.TryAdvancedTraceEvent("<sc.SqlInternalConnectionTds.OnFeatureExtAck|ADV> {0}, Received feature extension acknowledgement for DATACLASSIFICATION", ObjectID);
+
                         if (data.Length < 1)
                         {
                             SqlClientEventSource.Log.TryTraceEvent("<sc.SqlInternalConnectionTds.OnFeatureExtAck|ERR> {0}, Unknown token for DATACLASSIFICATION", ObjectID);
+
                             throw SQL.ParsingError(ParsingErrorState.CorruptedTdsStream);
                         }
                         byte supportedDataClassificationVersion = data[0];
@@ -2773,6 +2843,18 @@ namespace Microsoft.Data.SqlClient
                         }
                         byte enabled = data[1];
                         _parser.DataClassificationVersion = (enabled == 0) ? TdsEnums.DATA_CLASSIFICATION_NOT_ENABLED : supportedDataClassificationVersion;
+                        break;
+                    }
+
+                case TdsEnums.FEATUREEXT_UTF8SUPPORT:
+                    {
+                        SqlClientEventSource.Log.TryAdvancedTraceEvent("<sc.SqlInternalConnectionTds.OnFeatureExtAck|ADV> {0}, Received feature extension acknowledgement for UTF8 support", ObjectID);
+
+                        if (data.Length < 1)
+                        {
+                            SqlClientEventSource.Log.TryTraceEvent("<sc.SqlInternalConnectionTds.OnFeatureExtAck|ERR> {0}, Unknown value for UTF8 support", ObjectID);
+                            throw SQL.ParsingError();
+                        }
                         break;
                     }
 
