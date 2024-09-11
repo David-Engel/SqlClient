@@ -27,13 +27,23 @@
   ******************************************************************************
   -->
 
+  <PropertyGroup>
+    <Architecture>*</Architecture>
+    <!-- Is there a dash in the RuntimeIdentifier? -->
+    <DashIndex>$([MSBuild]::Add($(RuntimeIdentifier.IndexOf('-')), 1))</DashIndex>
+    <!-- Get the substring starting from the last dash excluding the dash. -->
+    <Architecture Condition="$(DashIndex)>0">$([System.Text.RegularExpressions.Regex]::Match($(RuntimeIdentifier), `[^-]*$`))</Architecture>
+    <!-- Check if there is any number in the Architecture so far. If none, for example arm, then append 64. It's because there is only a dll for arm64, Microsoft.Data.SqlClient.SNI.arm64.dll -->
+    <Architecture Condition="$(DashIndex)>0 And !$([System.Text.RegularExpressions.Regex]::IsMatch($(Architecture), `\d`))">$(Architecture)64</Architecture>
+  </PropertyGroup>
+
   <ItemGroup>
     <SNIDllFiles Condition="'$(MSBuildThisFileDirectory)' != '' And
                                     HasTrailingSlash('$(MSBuildThisFileDirectory)')"
-                        Include="$(MSBuildThisFileDirectory)**\Microsoft.Data.SqlClient.SNI.*.dll" />
+                        Include="$(MSBuildThisFileDirectory)**\Microsoft.Data.SqlClient.SNI.$(Architecture).dll" />
     <SNIFiles Condition="'$(MSBuildThisFileDirectory)' != '' And
                                    HasTrailingSlash('$(MSBuildThisFileDirectory)')"
-                        Include="$(MSBuildThisFileDirectory)**\Microsoft.Data.SqlClient.SNI.*"
+                        Include="$(MSBuildThisFileDirectory)**\Microsoft.Data.SqlClient.SNI.$(Architecture)"
                         Exclude="$(MSBuildThisFileDirectory)**\*.targets" />
   </ItemGroup>
 
