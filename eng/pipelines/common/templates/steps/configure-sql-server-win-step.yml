@@ -53,17 +53,17 @@ parameters:
     type: string
     default: $(LocalDbSharedInstanceName)
 
-# Common parameters
-  - name: password
-    type: string
-    default: $(password)
-
   - name: condition
     type: string
     default: and(succeeded(), eq(variables['Agent.OS'], 'Windows_NT'))
 
 steps:
 # windows only steps
+- powershell: |
+    $guid = [guid]::NewGuid().ToString()
+    Write-Host "##vso[task.setvariable variable=password;issecret=true]$guid"
+  displayName: 'Generate Password'
+
 - powershell: |
     try
     {
@@ -100,12 +100,9 @@ steps:
   retryCountOnTaskFailure: 2
 
 - powershell: |
-    $password = "${{parameters.password }}"
-    if ( "generated_placeholder" -eq $password )
-    {
-        $password = [guid]::NewGuid().ToString()
-    }
-    
+    $password = ${{variables.password }}
+    Write-Host "##vso[task.setvariable variable=password;issecret=true]$password"
+
     $machineName = $env:COMPUTERNAME
     
     if ("${{parameters.instanceName }}" -ne "MSSQLSERVER"){
@@ -140,7 +137,7 @@ steps:
   condition: ${{parameters.condition }}
   env:
     SQL_USER: ${{parameters.user }}
-    SQL_PASSWD: ${{parameters.password }}
+    SQL_PASSWD: ${{variables.password }}
 
 - ${{ if ne(parameters.SQLRootPath, '') }}:
   - powershell: |

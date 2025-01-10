@@ -4,16 +4,18 @@
 # See the LICENSE file in the project root for more information.                #
 #################################################################################
 parameters:
-  - name: password
-    type: string
-    default: $(password)
-
   - name: condition
     type: string
     default: and(succeeded(), eq(variables['Agent.OS'], 'Darwin'))
 
 steps:
 # Linux only steps
+- powershell: |
+    $guid = [guid]::NewGuid().ToString()
+    Write-Host "##vso[task.setvariable variable=password;issecret=true]$guid"
+  displayName: 'Generate Password'
+  pwsh: true  # Ensures PowerShell Core is used
+
 - bash: |
     # The "user" pipeline variable conflicts with homebrew, causing errors during install. Set it back to the pipeline user.
     USER=`whoami`
@@ -30,10 +32,7 @@ steps:
     docker pull mcr.microsoft.com/mssql/server:2022-latest
     
     # Password for the SA user (required)
-    MSSQL_SA_PW=${{parameters.password }}
-    if [ "$MSSQL_SA_PW" = "generated_placeholder" ]; then
-      exit 0
-    fi
+    MSSQL_SA_PW=${{variables.password }}
  
     docker run -e "ACCEPT_EULA=Y" -e "MSSQL_SA_PASSWORD=$MSSQL_SA_PW" -p 1433:1433 -p 1434:1434 --name sql1 --hostname sql1 -d mcr.microsoft.com/mssql/server:2022-latest
  

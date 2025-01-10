@@ -178,8 +178,6 @@ jobs:
             user: ${{ parameters.configProperties.user }}
           ${{ if parameters.configProperties.saUser }}:
             saUser: ${{ parameters.configProperties.saUser }}
-          ${{ if parameters.configProperties.password }}:
-            password: ${{ parameters.configProperties.password }}
           ${{ if parameters.configProperties.SQLRootPath }}:
             SQLRootPath: ${{ parameters.configProperties.SQLRootPath }}
           ${{ if parameters.configProperties.x64AliasRegistryPath }}:
